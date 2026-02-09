@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Swords, BarChart3, User, Menu, X } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,9 +19,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-background bg-grid-pattern">
       {/* Mobile header */}
       <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
-        <h1 className="font-display text-lg font-bold text-glow-purple text-primary">
-          SOLO LIFE
-        </h1>
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+          <h1 className="font-display text-lg font-bold text-glow-purple text-primary">SOLO LIFE</h1>
+        </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-foreground p-2">
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -34,9 +36,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 transition-transform duration-300`}
           >
             <div className="p-6 border-b border-sidebar-border hidden lg:block">
-              <h1 className="font-display text-xl font-bold text-glow-purple text-primary tracking-wider">
-                SOLO LIFE
-              </h1>
+              <div className="flex items-center gap-3">
+                <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
+                <h1 className="font-display text-xl font-bold text-glow-purple text-primary tracking-wider">SOLO LIFE</h1>
+              </div>
               <p className="text-xs text-muted-foreground font-body mt-1">Sistema de Evolução Pessoal</p>
             </div>
 

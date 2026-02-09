@@ -19,6 +19,14 @@ const Missions = () => {
     setMissions(prev => prev.map(m => m.id === id ? { ...m, completed: true } : m));
   };
 
+  const handleEdit = (id: string, name: string, xp: number) => {
+    setMissions(prev => prev.map(m => m.id === id ? { ...m, name, xp } : m));
+  };
+
+  const handleDelete = (id: string) => {
+    setMissions(prev => prev.filter(m => m.id !== id));
+  };
+
   const handleAdd = () => {
     if (!newName.trim()) return;
     const newMission = {
@@ -123,7 +131,7 @@ const Missions = () => {
       <div className="space-y-3">
         <AnimatePresence>
           {filtered.map(mission => (
-            <MissionItem key={mission.id} mission={mission} onComplete={handleComplete} />
+            <MissionItem key={mission.id} mission={mission} onComplete={handleComplete} onEdit={handleEdit} onDelete={handleDelete} />
           ))}
         </AnimatePresence>
       </div>

@@ -1,18 +1,14 @@
 import { motion } from "framer-motion";
 import GameCard from "@/components/GameCard";
-import { mockWeeklyProgress, mockMonthlyProgress, mockMissions, mockPlayer } from "@/lib/mockData";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { useProfile, useMissions } from "@/hooks/useProfile";
 
 const Progress = () => {
-  const totalMissions = mockMissions.length;
-  const completedMissions = mockMissions.filter(m => m.completed).length;
-  const completionRate = Math.round((completedMissions / totalMissions) * 100);
+  const { data: profile } = useProfile();
+  const { data: missions = [] } = useMissions();
 
-  const weeklyData = mockWeeklyProgress.map(d => ({
-    name: d.day,
-    concluídas: d.completed,
-    total: d.total,
-  }));
+  const totalMissions = missions.length;
+  const completedMissions = missions.filter(m => m.completed).length;
+  const completionRate = totalMissions > 0 ? Math.round((completedMissions / totalMissions) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -21,7 +17,6 @@ const Progress = () => {
         <p className="text-muted-foreground font-body">Acompanhe sua evolução, Hunter</p>
       </div>
 
-      {/* Completion rate */}
       <GameCard glowColor="blue">
         <h2 className="font-display text-sm text-muted-foreground mb-4">TAXA DE CONCLUSÃO</h2>
         <div className="flex items-center gap-6">
@@ -46,94 +41,34 @@ const Progress = () => {
           <div className="space-y-2 font-body">
             <p className="text-foreground"><span className="text-neon-green font-bold">{completedMissions}</span> missões completas</p>
             <p className="text-muted-foreground">{totalMissions - completedMissions} restantes</p>
-            <p className="text-muted-foreground text-sm">Streak atual: <span className="text-neon-gold font-bold">{mockPlayer.streak} dias 🔥</span></p>
+            <p className="text-muted-foreground text-sm">Streak atual: <span className="text-neon-gold font-bold">{profile?.streak ?? 0} dias 🔥</span></p>
           </div>
         </div>
       </GameCard>
 
-      {/* Weekly chart */}
       <GameCard>
-        <h2 className="font-display text-sm text-muted-foreground mb-4">PROGRESSO SEMANAL</h2>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={weeklyData}>
-            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(240 12% 9%)",
-                border: "1px solid hsl(260 30% 20%)",
-                borderRadius: "8px",
-                color: "hsl(220 20% 90%)",
-                fontFamily: "Rajdhani",
-              }}
-            />
-            <Bar dataKey="concluídas" fill="hsl(260 80% 55%)" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </GameCard>
-
-      {/* Monthly progress */}
-      <GameCard glowColor="green">
-        <h2 className="font-display text-sm text-muted-foreground mb-4">PROGRESSO MENSAL</h2>
-        <div className="space-y-4">
-          {mockMonthlyProgress.map((week, i) => (
+        <h2 className="font-display text-sm text-muted-foreground mb-4">RESUMO DE MISSÕES</h2>
+        <div className="space-y-3">
+          {missions.map((m, i) => (
             <motion.div
-              key={week.week}
+              key={m.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
             >
-              <div className="flex justify-between text-sm font-body mb-1">
-                <span className="text-foreground">{week.week}</span>
-                <span className="text-neon-green font-bold">{week.percentage}%</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg">{m.icon}</span>
+                <span className={`font-body text-sm ${m.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>{m.name}</span>
               </div>
-              <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-neon-purple to-neon-blue"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${week.percentage}%` }}
-                  transition={{ delay: i * 0.1 + 0.3, duration: 0.8 }}
-                />
-              </div>
+              <span className={`text-xs font-display ${m.completed ? "text-neon-green" : "text-muted-foreground"}`}>
+                {m.completed ? "✓" : `+${m.xp} XP`}
+              </span>
             </motion.div>
           ))}
-        </div>
-      </GameCard>
-
-      {/* History */}
-      <GameCard>
-        <h2 className="font-display text-sm text-muted-foreground mb-4">HISTÓRICO DE HÁBITOS</h2>
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: 28 }, (_, i) => {
-            const intensity = Math.random();
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.02 }}
-                className="aspect-square rounded-sm"
-                style={{
-                  backgroundColor: intensity > 0.7
-                    ? "hsl(260 80% 55%)"
-                    : intensity > 0.4
-                    ? "hsl(260 80% 55% / 0.5)"
-                    : intensity > 0.1
-                    ? "hsl(260 80% 55% / 0.2)"
-                    : "hsl(var(--secondary))",
-                }}
-                title={`Dia ${i + 1}`}
-              />
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground font-body justify-end">
-          <span>Menos</span>
-          <div className="w-3 h-3 rounded-sm bg-secondary" />
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(260 80% 55% / 0.2)" }} />
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(260 80% 55% / 0.5)" }} />
-          <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "hsl(260 80% 55%)" }} />
-          <span>Mais</span>
+          {missions.length === 0 && (
+            <p className="text-muted-foreground font-body text-center py-4">Nenhuma missão ainda.</p>
+          )}
         </div>
       </GameCard>
     </div>

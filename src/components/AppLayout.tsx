@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, Swords, BarChart3, User, Menu, X, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -13,11 +14,12 @@ const navItems = [
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background bg-grid-pattern">
       {/* Mobile header */}
-       <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="font-display text-lg font-bold text-glow-purple text-primary">SOLO LIFE</h1>
         </div>
@@ -61,7 +63,14 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               })}
             </nav>
 
-            <div className="p-4 border-t border-sidebar-border">
+            <div className="p-4 border-t border-sidebar-border space-y-3">
+              <button
+                onClick={signOut}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-body text-base font-semibold text-destructive hover:bg-destructive/10 transition-all"
+              >
+                <LogOut size={20} />
+                Sair
+              </button>
               <div className="text-xs text-muted-foreground font-body text-center">
                 v1.0 — Arise, Hunter
               </div>

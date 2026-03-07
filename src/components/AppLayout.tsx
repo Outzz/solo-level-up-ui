@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Swords, BarChart3, User, Menu, X } from "lucide-react";
-import logo from "@/assets/logo.png";
+import { LayoutDashboard, Swords, BarChart3, User, Menu, X, LogOut } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },

@@ -14,13 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          unlocked: boolean
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon: string
+          id?: string
+          name: string
+          unlocked?: boolean
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          unlocked?: boolean
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_progress: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          missions_completed: number
+          missions_total: number
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          missions_completed?: number
+          missions_total?: number
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          missions_completed?: number
+          missions_total?: number
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
+      missions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          type: string
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          type?: string
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          hunter_name: string
+          id: string
+          last_active_date: string | null
+          level: number
+          streak: number
+          updated_at: string
+          user_id: string
+          xp: number
+          xp_to_next: number
+        }
+        Insert: {
+          created_at?: string
+          hunter_name: string
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          streak?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+          xp_to_next?: number
+        }
+        Update: {
+          created_at?: string
+          hunter_name?: string
+          id?: string
+          last_active_date?: string | null
+          level?: number
+          streak?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+          xp_to_next?: number
+        }
+        Relationships: []
+      }
+      titles: {
+        Row: {
+          earned_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          earned_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          earned_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_hunter_name: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

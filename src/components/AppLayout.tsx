@@ -36,7 +36,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="p-6 border-b border-sidebar-border hidden lg:block">
               <div className="flex items-center gap-3">
-                <img src={logo} alt="Logo" className="w-10 h-10 object-contain" />
                 <h1 className="font-display text-xl font-bold text-glow-purple text-primary tracking-wider">SOLO LIFE</h1>
               </div>
               <p className="text-xs text-muted-foreground font-body mt-1">Sistema de Evolução Pessoal</p>

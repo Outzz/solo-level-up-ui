@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2, Check, X } from "lucide-react";
-import type { Mission } from "@/lib/mockData";
+
+interface MissionData {
+  id: string;
+  name: string;
+  xp: number;
+  type: string;
+  completed: boolean;
+  icon: string;
+}
 
 interface MissionItemProps {
-  mission: Mission;
+  mission: MissionData;
   onComplete: (id: string) => void;
   onEdit?: (id: string, name: string, xp: number) => void;
   onDelete?: (id: string) => void;

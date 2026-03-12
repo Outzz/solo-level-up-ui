@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import MissionItem from "@/components/MissionItem";
+import EmojiPicker from "@/components/EmojiPicker";
 import { useMissions, useCompleteMission, useAddMission, useEditMission, useDeleteMission } from "@/hooks/useProfile";
 
 const Missions = () => {
@@ -11,11 +12,12 @@ const Missions = () => {
   const editMission = useEditMission();
   const deleteMission = useDeleteMission();
 
-  const [filter, setFilter] = useState<"all" | "daily" | "weekly">("all");
+  const [filter, setFilter] = useState<"all" | "daily" | "weekly" | "monthly">("all");
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newXp, setNewXp] = useState(50);
-  const [newType, setNewType] = useState<"daily" | "weekly">("daily");
+  const [newType, setNewType] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [newIcon, setNewIcon] = useState("⚡");
 
   const filtered = filter === "all" ? missions : missions.filter(m => m.type === filter);
   const completed = filtered.filter(m => m.completed).length;
@@ -26,8 +28,9 @@ const Missions = () => {
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    addMission.mutate({ name: newName, xp: newXp, type: newType, icon: "⚡" });
+    addMission.mutate({ name: newName, xp: newXp, type: newType, icon: newIcon });
     setNewName("");
+    setNewIcon("⚡");
     setShowAdd(false);
   };
 
@@ -52,7 +55,10 @@ const Missions = () => {
         {showAdd && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
             <div className="bg-card border-glow rounded-lg p-5 space-y-4">
-              <input type="text" placeholder="Nome da missão..." value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              <div className="flex items-start gap-3">
+                <EmojiPicker selected={newIcon} onSelect={setNewIcon} />
+                <input type="text" placeholder="Nome da missão..." value={newName} onChange={e => setNewName(e.target.value)} className="flex-1 bg-input border border-border rounded-lg px-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
               <div className="flex gap-3 flex-wrap">
                 <div className="flex-1 min-w-[120px]">
                   <label className="text-xs text-muted-foreground font-display block mb-1">XP</label>
@@ -60,9 +66,10 @@ const Missions = () => {
                 </div>
                 <div className="flex-1 min-w-[120px]">
                   <label className="text-xs text-muted-foreground font-display block mb-1">Tipo</label>
-                  <select value={newType} onChange={e => setNewType(e.target.value as "daily" | "weekly")} className="w-full bg-input border border-border rounded-lg px-4 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary">
+                  <select value={newType} onChange={e => setNewType(e.target.value as "daily" | "weekly" | "monthly")} className="w-full bg-input border border-border rounded-lg px-4 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="daily">Diária</option>
                     <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
                   </select>
                 </div>
               </div>
@@ -75,9 +82,9 @@ const Missions = () => {
       </AnimatePresence>
 
       <div className="flex gap-2">
-        {(["all", "daily", "weekly"] as const).map(f => (
+        {(["all", "daily", "weekly", "monthly"] as const).map(f => (
           <button key={f} onClick={() => setFilter(f)} className={`px-4 py-2 rounded-lg font-display text-sm font-semibold transition-all ${filter === f ? "bg-primary text-primary-foreground glow-purple" : "bg-secondary text-secondary-foreground hover:bg-muted"}`}>
-            {f === "all" ? "Todas" : f === "daily" ? "Diárias" : "Semanais"}
+            {f === "all" ? "Todas" : f === "daily" ? "Diárias" : f === "weekly" ? "Semanais" : "Mensais"}
           </button>
         ))}
       </div>

@@ -1,18 +1,24 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Crown, Shield, Star, Pencil, Check, X } from "lucide-react";
+import { Crown, Shield, Star, Pencil, Check, X, Camera } from "lucide-react";
 import GameCard from "@/components/GameCard";
 import XPBar from "@/components/XPBar";
 import { useProfile, useUpdateProfile, useAchievements, useTitles } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Profile = () => {
   const { data: profile } = useProfile();
   const { data: achievements = [] } = useAchievements();
   const { data: titles = [] } = useTitles();
   const updateProfile = useUpdateProfile();
+  const { user } = useAuth();
 
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveName = () => {
     if (newName.trim()) {
@@ -21,47 +27,90 @@ const Profile = () => {
     setEditingName(false);
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      // Add cache-busting
+      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("user_id", user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Foto atualizada!");
+      // Refresh profile
+      window.location.reload();
+    } catch (err: any) {
+      toast.error("Erro ao enviar foto: " + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const stats = [
     { label: "Nível", value: profile?.level ?? 1 },
     { label: "XP Total", value: profile?.xp ?? 0 },
     { label: "Streak Atual", value: profile?.streak ?? 0 },
   ];
 
+  const avatarUrl = (profile as any)?.avatar_url;
+
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
-        <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-purple">
-          <Crown size={40} className="text-primary-foreground" />
+        <div className="relative w-24 h-24 mx-auto mb-4 group">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" className="w-24 h-24 rounded-full object-cover glow-purple" />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-purple">
+              <Crown size={40} className="text-primary-foreground" />
+            </div>
+          )}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="absolute inset-0 rounded-full bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          >
+            <Camera size={24} className="text-foreground" />
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
         </div>
 
         {editingName ? (
           <div className="flex items-center justify-center gap-2 max-w-xs mx-auto">
-            <input
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              className="bg-input border border-border rounded-lg px-3 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary text-center"
-              autoFocus
-            />
+            <input value={newName} onChange={e => setNewName(e.target.value)}
+              className="bg-input border border-border rounded-lg px-3 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary text-center" autoFocus />
             <button onClick={handleSaveName} className="p-2 text-neon-green hover:bg-secondary rounded-lg"><Check size={18} /></button>
             <button onClick={() => setEditingName(false)} className="p-2 text-muted-foreground hover:bg-secondary rounded-lg"><X size={18} /></button>
           </div>
         ) : (
           <div className="flex items-center justify-center gap-2">
-            <h1 className="text-3xl font-display font-bold text-glow-purple text-primary">
-              {profile?.hunter_name ?? "Hunter"}
-            </h1>
-            <button
-              onClick={() => { setNewName(profile?.hunter_name ?? ""); setEditingName(true); }}
-              className="p-2 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Pencil size={16} />
-            </button>
+            <h1 className="text-3xl font-display font-bold text-glow-purple text-primary">{profile?.hunter_name ?? "Hunter"}</h1>
+            <button onClick={() => { setNewName(profile?.hunter_name ?? ""); setEditingName(true); }}
+              className="p-2 text-muted-foreground hover:text-primary transition-colors"><Pencil size={16} /></button>
           </div>
         )}
 
-        <p className="text-accent font-display text-sm mt-1">
-          HUNTER NÍVEL {profile?.level ?? 1}
-        </p>
+        <p className="text-accent font-display text-sm mt-1">HUNTER NÍVEL {profile?.level ?? 1}</p>
         <div className="max-w-xs mx-auto mt-4">
           <XPBar current={profile?.xp ?? 0} max={profile?.xp_to_next ?? 500} />
         </div>

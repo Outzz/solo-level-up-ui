@@ -1,17 +1,29 @@
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Flame, Zap, Trophy, Target } from "lucide-react";
 import GameCard from "@/components/GameCard";
 import XPBar from "@/components/XPBar";
 import MissionItem from "@/components/MissionItem";
+import FireAnimation from "@/components/FireAnimation";
 import { useProfile, useMissions, useCompleteMission } from "@/hooks/useProfile";
 
 const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: missions = [] } = useMissions();
   const completeMission = useCompleteMission();
+  const [showFire, setShowFire] = useState(false);
+  const [fireTriggered, setFireTriggered] = useState(false);
 
   const dailyMissions = missions.filter(m => m.type === "daily");
   const completedToday = dailyMissions.filter(m => m.completed).length;
+  const allDailyComplete = dailyMissions.length > 0 && completedToday === dailyMissions.length;
+
+  useEffect(() => {
+    if (allDailyComplete && !fireTriggered) {
+      setShowFire(true);
+      setFireTriggered(true);
+    }
+  }, [allDailyComplete, fireTriggered]);
 
   const handleComplete = (id: string) => {
     completeMission.mutate(id);
@@ -26,6 +38,8 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <FireAnimation show={showFire} onComplete={() => setShowFire(false)} />
+
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-muted-foreground font-body text-lg">Bem-vindo de volta,</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-glow-purple text-primary">
@@ -54,6 +68,16 @@ const Dashboard = () => {
           </motion.div>
         ))}
       </div>
+
+      {allDailyComplete && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+          <GameCard glowColor="green" className="text-center py-6">
+            <span className="text-4xl block mb-2">🔥</span>
+            <h3 className="font-display text-lg font-bold text-neon-green">TODAS AS MISSÕES COMPLETAS!</h3>
+            <p className="text-muted-foreground font-body text-sm">Você está em chamas hoje, Hunter!</p>
+          </GameCard>
+        </motion.div>
+      )}
 
       <div>
         <h2 className="font-display text-lg font-bold mb-4 text-foreground flex items-center gap-2">

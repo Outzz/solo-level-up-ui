@@ -17,6 +17,7 @@ export type Database = {
       achievements: {
         Row: {
           created_at: string
+          description: string
           icon: string
           id: string
           name: string
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string
           icon: string
           id?: string
           name: string
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string
           icon?: string
           id?: string
           name?: string
@@ -112,6 +115,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           hunter_name: string
           id: string
@@ -124,6 +128,7 @@ export type Database = {
           xp_to_next: number
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           hunter_name: string
           id?: string
@@ -136,6 +141,7 @@ export type Database = {
           xp_to_next?: number
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           hunter_name?: string
           id?: string
@@ -151,20 +157,26 @@ export type Database = {
       }
       titles: {
         Row: {
+          description: string
           earned_at: string
           id: string
+          min_level: number
           title: string
           user_id: string
         }
         Insert: {
+          description?: string
           earned_at?: string
           id?: string
+          min_level?: number
           title: string
           user_id: string
         }
         Update: {
+          description?: string
           earned_at?: string
           id?: string
+          min_level?: number
           title?: string
           user_id?: string
         }

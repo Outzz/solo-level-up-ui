@@ -38,13 +38,32 @@ const Auth = () => {
     }
   };
 
+  const isLovableDomain = () => {
+    const hostname = window.location.hostname;
+    return hostname.includes("lovable.app") || hostname.includes("lovableproject.com") || hostname === "localhost";
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
+      if (isLovableDomain()) {
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+        });
+        if (result.error) throw result.error;
+      } else {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error) throw error;
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      }
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } finally {

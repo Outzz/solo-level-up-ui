@@ -38,62 +38,53 @@ const Auth = () => {
     }
   };
 
-  const isLovableDomain = () => {
-    const hostname = window.location.hostname;
-    return hostname.includes("lovable.app") || hostname.includes("lovableproject.com") || hostname === "localhost";
+  const getOAuthRedirectUrl = () => `${window.location.origin}/auth`;
+
+  const validateOAuthUrl = (url: string) => {
+    const oauthUrl = new URL(url, window.location.origin);
+    const authHost = new URL(import.meta.env.VITE_SUPABASE_URL).hostname;
+    const isSecure = oauthUrl.protocol === "https:";
+    const isTrustedHost =
+      oauthUrl.hostname === authHost ||
+      oauthUrl.hostname === "accounts.google.com" ||
+      oauthUrl.hostname.endsWith(".google.com");
+
+    if (!isSecure || !isTrustedHost) {
+      throw new Error("URL de autenticação inválida.");
+    }
+
+    return oauthUrl.toString();
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      if (isLovableDomain()) {
-        const result = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: window.location.origin,
-        });
-        if (result.error) throw result.error;
-      } else {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      }
-    } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getOAuthRedirectUrl(),
+          skipBrowserRedirect: true,
+        },
+      });
 
-  const handleAppleLogin = async () => {
-    setLoading(true);
-    try {
-      if (isLovableDomain()) {
-        const result = await lovable.auth.signInWithOAuth("apple", {
-          redirect_uri: window.location.origin,
+      if (error) throw error;
+      if (!data?.url) throw new Error("Não foi possível iniciar o login com Google.");
+
+      window.location.assign(validateOAuthUrl(data.url));
+      return;
+    } catch (primaryError: any) {
+      try {
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: getOAuthRedirectUrl(),
         });
         if (result.error) throw result.error;
-      } else {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "apple",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
+      } catch (fallbackError: any) {
+        toast({
+          title: "Erro",
+          description: fallbackError?.message || primaryError?.message || "Falha no login com Google.",
+          variant: "destructive",
         });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
       }
-    } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }

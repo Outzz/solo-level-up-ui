@@ -38,62 +38,53 @@ const Auth = () => {
     }
   };
 
-  const isLovableDomain = () => {
-    const hostname = window.location.hostname;
-    return hostname.includes("lovable.app") || hostname.includes("lovableproject.com") || hostname === "localhost";
+  const getOAuthRedirectUrl = () => `${window.location.origin}/auth`;
+
+  const validateOAuthUrl = (url: string) => {
+    const oauthUrl = new URL(url, window.location.origin);
+    const authHost = new URL(import.meta.env.VITE_SUPABASE_URL).hostname;
+    const isSecure = oauthUrl.protocol === "https:";
+    const isTrustedHost =
+      oauthUrl.hostname === authHost ||
+      oauthUrl.hostname === "accounts.google.com" ||
+      oauthUrl.hostname.endsWith(".google.com");
+
+    if (!isSecure || !isTrustedHost) {
+      throw new Error("URL de autenticação inválida.");
+    }
+
+    return oauthUrl.toString();
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      if (isLovableDomain()) {
-        const result = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: window.location.origin,
-        });
-        if (result.error) throw result.error;
-      } else {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
-        });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
-      }
-    } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getOAuthRedirectUrl(),
+          skipBrowserRedirect: true,
+        },
+      });
 
-  const handleAppleLogin = async () => {
-    setLoading(true);
-    try {
-      if (isLovableDomain()) {
-        const result = await lovable.auth.signInWithOAuth("apple", {
-          redirect_uri: window.location.origin,
+      if (error) throw error;
+      if (!data?.url) throw new Error("Não foi possível iniciar o login com Google.");
+
+      window.location.assign(validateOAuthUrl(data.url));
+      return;
+    } catch (primaryError: any) {
+      try {
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: getOAuthRedirectUrl(),
         });
         if (result.error) throw result.error;
-      } else {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "apple",
-          options: {
-            redirectTo: window.location.origin,
-            skipBrowserRedirect: true,
-          },
+      } catch (fallbackError: any) {
+        toast({
+          title: "Erro",
+          description: fallbackError?.message || primaryError?.message || "Falha no login com Google.",
+          variant: "destructive",
         });
-        if (error) throw error;
-        if (data?.url) {
-          window.location.href = data.url;
-        }
       }
-    } catch (error: any) {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -144,18 +135,6 @@ const Auth = () => {
               Entrar com Google
             </motion.button>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleAppleLogin}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-secondary text-foreground font-body font-semibold border border-border hover:border-primary/50 transition-all disabled:opacity-50"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-              </svg>
-              Entrar com Apple
-            </motion.button>
           </div>
 
           <div className="flex items-center gap-3">

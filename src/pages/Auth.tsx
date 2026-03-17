@@ -38,53 +38,19 @@ const Auth = () => {
     }
   };
 
-  const getOAuthRedirectUrl = () => `${window.location.origin}/auth`;
-
-  const validateOAuthUrl = (url: string) => {
-    const oauthUrl = new URL(url, window.location.origin);
-    const authHost = new URL(import.meta.env.VITE_SUPABASE_URL).hostname;
-    const isSecure = oauthUrl.protocol === "https:";
-    const isTrustedHost =
-      oauthUrl.hostname === authHost ||
-      oauthUrl.hostname === "accounts.google.com" ||
-      oauthUrl.hostname.endsWith(".google.com");
-
-    if (!isSecure || !isTrustedHost) {
-      throw new Error("URL de autenticação inválida.");
-    }
-
-    return oauthUrl.toString();
-  };
-
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: getOAuthRedirectUrl(),
-          skipBrowserRedirect: true,
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
-
-      if (error) throw error;
-      if (!data?.url) throw new Error("Não foi possível iniciar o login com Google.");
-
-      window.location.assign(validateOAuthUrl(data.url));
-      return;
-    } catch (primaryError: any) {
-      try {
-        const result = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: getOAuthRedirectUrl(),
-        });
-        if (result.error) throw result.error;
-      } catch (fallbackError: any) {
-        toast({
-          title: "Erro",
-          description: fallbackError?.message || primaryError?.message || "Falha no login com Google.",
-          variant: "destructive",
-        });
-      }
+      if (result.error) throw result.error;
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error?.message || "Falha no login com Google.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -117,7 +83,6 @@ const Auth = () => {
             {isLogin ? "ENTRAR NO SISTEMA" : "CRIAR CONTA"}
           </h2>
 
-          {/* Social logins */}
           <div className="space-y-3">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -134,7 +99,6 @@ const Auth = () => {
               </svg>
               Entrar com Google
             </motion.button>
-
           </div>
 
           <div className="flex items-center gap-3">
@@ -143,7 +107,6 @@ const Auth = () => {
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Email form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div className="relative">
               <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

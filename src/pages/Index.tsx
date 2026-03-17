@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Flame, Zap, Trophy, Target } from "lucide-react";
 import GameCard from "@/components/GameCard";
 import XPBar from "@/components/XPBar";
 import MissionItem from "@/components/MissionItem";
 import FireAnimation from "@/components/FireAnimation";
+import LevelUpAnimation from "@/components/LevelUpAnimation";
 import { useProfile, useMissions, useCompleteMission } from "@/hooks/useProfile";
 
 const Dashboard = () => {
@@ -13,6 +14,8 @@ const Dashboard = () => {
   const completeMission = useCompleteMission();
   const [showFire, setShowFire] = useState(false);
   const [fireTriggered, setFireTriggered] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpLevel, setLevelUpLevel] = useState(1);
 
   const dailyMissions = missions.filter(m => m.type === "daily");
   const completedToday = dailyMissions.filter(m => m.completed).length;
@@ -26,7 +29,14 @@ const Dashboard = () => {
   }, [allDailyComplete, fireTriggered]);
 
   const handleComplete = (id: string) => {
-    completeMission.mutate(id);
+    completeMission.mutate(id, {
+      onSuccess: (data) => {
+        if (data?.leveledUp) {
+          setLevelUpLevel(data.newLevel);
+          setShowLevelUp(true);
+        }
+      },
+    });
   };
 
   const statCards = [
@@ -39,6 +49,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <FireAnimation show={showFire} onComplete={() => setShowFire(false)} />
+      <LevelUpAnimation show={showLevelUp} newLevel={levelUpLevel} onComplete={() => setShowLevelUp(false)} />
 
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-muted-foreground font-body text-lg">Bem-vindo de volta,</p>

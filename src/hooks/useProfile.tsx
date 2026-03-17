@@ -65,21 +65,21 @@ export const useCompleteMission = () => {
 
   return useMutation({
     mutationFn: async (missionId: string) => {
-      // Get mission XP
       const { data: mission } = await supabase
         .from("missions")
         .select("xp")
         .eq("id", missionId)
         .single();
 
-      // Mark complete
       const { error } = await supabase
         .from("missions")
         .update({ completed: true })
         .eq("id", missionId);
       if (error) throw error;
 
-      // Add XP to profile
+      let leveledUp = false;
+      let newLevel = 1;
+
       if (mission) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -89,7 +89,7 @@ export const useCompleteMission = () => {
 
         if (profile) {
           let newXp = profile.xp + mission.xp;
-          let newLevel = profile.level;
+          newLevel = profile.level;
           let newXpToNext = profile.xp_to_next;
 
           while (newXp >= newXpToNext) {
@@ -98,12 +98,16 @@ export const useCompleteMission = () => {
             newXpToNext = Math.floor(newXpToNext * 1.2);
           }
 
+          leveledUp = newLevel > profile.level;
+
           await supabase
             .from("profiles")
             .update({ xp: newXp, level: newLevel, xp_to_next: newXpToNext })
             .eq("user_id", user!.id);
         }
       }
+
+      return { leveledUp, newLevel };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["missions"] });

@@ -20,6 +20,8 @@ const Dashboard = () => {
   const [levelUpLevel, setLevelUpLevel] = useState(1);
 
   const dailyMissions = missions.filter(m => m.type === "daily");
+  const weeklyMissions = missions.filter(m => m.type === "weekly");
+  const monthlyMissions = missions.filter(m => m.type === "monthly");
   const completedToday = dailyMissions.filter(m => m.completed).length;
   const allDailyComplete = dailyMissions.length > 0 && completedToday === dailyMissions.length;
 
@@ -56,6 +58,12 @@ const Dashboard = () => {
     { label: "Streak", value: `${profile?.streak ?? 0} dias`, icon: Flame, color: "text-neon-gold" },
     { label: "Missões Hoje", value: `${completedToday}/${dailyMissions.length}`, icon: Target, color: "text-neon-blue" },
     { label: "XP Total", value: (profile?.xp ?? 0).toLocaleString(), icon: Trophy, color: "text-neon-green" },
+  ];
+
+  const missionSections = [
+    { title: "MISSÕES DIÁRIAS", missions: dailyMissions, icon: "⚡", emptyMsg: "Nenhuma missão diária." },
+    { title: "MISSÕES SEMANAIS", missions: weeklyMissions, icon: "🗡️", emptyMsg: "Nenhuma missão semanal." },
+    { title: "MISSÕES MENSAIS", missions: monthlyMissions, icon: "🏆", emptyMsg: "Nenhuma missão mensal." },
   ];
 
   return (
@@ -102,19 +110,24 @@ const Dashboard = () => {
         </motion.div>
       )}
 
-      <div>
-        <h2 className="font-display text-lg font-bold mb-4 text-foreground flex items-center gap-2">
-          <Zap size={18} className="text-neon-purple" /> MISSÕES DO DIA
-        </h2>
-        <div className="space-y-3">
-          {dailyMissions.map(mission => (
-            <MissionItem key={mission.id} mission={mission} onComplete={handleComplete} />
-          ))}
-          {dailyMissions.length === 0 && (
-            <p className="text-muted-foreground font-body text-center py-8">Nenhuma missão diária ainda.</p>
-          )}
+      {missionSections.map((section) => (
+        <div key={section.title}>
+          <h2 className="font-display text-lg font-bold mb-4 text-foreground flex items-center gap-2">
+            <span>{section.icon}</span> {section.title}
+            <span className="text-sm font-normal text-muted-foreground ml-auto">
+              {section.missions.filter(m => m.completed).length}/{section.missions.length}
+            </span>
+          </h2>
+          <div className="space-y-3">
+            {section.missions.map(mission => (
+              <MissionItem key={mission.id} mission={mission} onComplete={handleComplete} />
+            ))}
+            {section.missions.length === 0 && (
+              <p className="text-muted-foreground font-body text-center py-4 text-sm">{section.emptyMsg}</p>
+            )}
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 };

@@ -13,6 +13,7 @@ const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: missions = [] } = useMissions();
   const completeMission = useCompleteMission();
+  const { toast } = useToast();
   const [showFire, setShowFire] = useState(false);
   const [fireTriggered, setFireTriggered] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);

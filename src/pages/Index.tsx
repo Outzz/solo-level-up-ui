@@ -7,6 +7,7 @@ import MissionItem from "@/components/MissionItem";
 import FireAnimation from "@/components/FireAnimation";
 import LevelUpAnimation from "@/components/LevelUpAnimation";
 import { useProfile, useMissions, useCompleteMission } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { data: profile } = useProfile();

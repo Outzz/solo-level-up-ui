@@ -7,11 +7,13 @@ import MissionItem from "@/components/MissionItem";
 import FireAnimation from "@/components/FireAnimation";
 import LevelUpAnimation from "@/components/LevelUpAnimation";
 import { useProfile, useMissions, useCompleteMission } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: missions = [] } = useMissions();
   const completeMission = useCompleteMission();
+  const { toast } = useToast();
   const [showFire, setShowFire] = useState(false);
   const [fireTriggered, setFireTriggered] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -34,6 +36,16 @@ const Dashboard = () => {
         if (data?.leveledUp) {
           setLevelUpLevel(data.newLevel);
           setShowLevelUp(true);
+        }
+        if (data?.unlockedAchievements?.length) {
+          data.unlockedAchievements.forEach((ach, i) => {
+            setTimeout(() => {
+              toast({
+                title: `${ach.icon} Conquista Desbloqueada!`,
+                description: `${ach.name} — ${ach.description}`,
+              });
+            }, i * 1500);
+          });
         }
       },
     });

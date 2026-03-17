@@ -83,7 +83,7 @@ export const useCompleteMission = () => {
       if (mission) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("xp, xp_to_next, level")
+          .select("xp, xp_to_next, level, streak")
           .eq("user_id", user!.id)
           .single();
 
@@ -104,17 +104,63 @@ export const useCompleteMission = () => {
             .from("profiles")
             .update({ xp: newXp, level: newLevel, xp_to_next: newXpToNext })
             .eq("user_id", user!.id);
+
+          // Check and unlock achievements
+          const unlockedAchievements = await checkAndUnlockAchievements(user!.id, profile.streak, newLevel);
+
+          return { leveledUp, newLevel, unlockedAchievements };
         }
       }
 
-      return { leveledUp, newLevel };
+      return { leveledUp, newLevel, unlockedAchievements: [] as { name: string; icon: string; description: string }[] };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["missions"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["achievements"] });
     },
   });
 };
+
+async function checkAndUnlockAchievements(userId: string, streak: number, level: number) {
+  const { data: achievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("unlocked", false);
+
+  if (!achievements || achievements.length === 0) return [];
+
+  // Count completed missions
+  const { count: completedCount } = await supabase
+    .from("missions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("completed", true);
+
+  const unlocked: { name: string; icon: string; description: string }[] = [];
+
+  for (const ach of achievements) {
+    let shouldUnlock = false;
+
+    if (ach.name === "Primeira Missão" && (completedCount ?? 0) >= 1) shouldUnlock = true;
+    if (ach.name === "7 Dias Seguidos" && streak >= 7) shouldUnlock = true;
+    if (ach.name === "30 Dias Seguidos" && streak >= 30) shouldUnlock = true;
+    // Level-based achievements
+    if (ach.name === "Nível 5" && level >= 5) shouldUnlock = true;
+    if (ach.name === "Nível 10" && level >= 10) shouldUnlock = true;
+
+    if (shouldUnlock) {
+      await supabase
+        .from("achievements")
+        .update({ unlocked: true, unlocked_at: new Date().toISOString() })
+        .eq("id", ach.id);
+      unlocked.push({ name: ach.name, icon: ach.icon, description: ach.description });
+    }
+  }
+
+  return unlocked;
+}
 
 export const useAddMission = () => {
   const { user } = useAuth();

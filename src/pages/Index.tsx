@@ -37,6 +37,16 @@ const Dashboard = () => {
           setLevelUpLevel(data.newLevel);
           setShowLevelUp(true);
         }
+        if (data?.unlockedAchievements?.length) {
+          data.unlockedAchievements.forEach((ach, i) => {
+            setTimeout(() => {
+              toast({
+                title: `${ach.icon} Conquista Desbloqueada!`,
+                description: `${ach.name} — ${ach.description}`,
+              });
+            }, i * 1500);
+          });
+        }
       },
     });
   };

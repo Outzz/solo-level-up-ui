@@ -58,18 +58,17 @@ const Missions = () => {
                 <EmojiPicker selected={newIcon} onSelect={setNewIcon} />
                 <input type="text" placeholder="Nome da missão..." value={newName} onChange={e => setNewName(e.target.value)} className="flex-1 bg-input border border-border rounded-lg px-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
-              <div className="flex gap-3 flex-wrap">
-                <div className="flex-1 min-w-[120px]">
-                  <label className="text-xs text-muted-foreground font-display block mb-1">XP</label>
-                  <input type="number" value={newXp} onChange={e => setNewXp(Number(e.target.value))} className="w-full bg-input border border-border rounded-lg px-4 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary" />
-                </div>
+              <div className="flex gap-3 flex-wrap items-end">
                 <div className="flex-1 min-w-[120px]">
                   <label className="text-xs text-muted-foreground font-display block mb-1">Tipo</label>
                   <select value={newType} onChange={e => setNewType(e.target.value as "daily" | "weekly" | "monthly")} className="w-full bg-input border border-border rounded-lg px-4 py-2 text-foreground font-body focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option value="daily">Diária</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="monthly">Mensal</option>
+                    <option value="daily">Diária (50 XP)</option>
+                    <option value="weekly">Semanal (150 XP)</option>
+                    <option value="monthly">Mensal (500 XP)</option>
                   </select>
+                </div>
+                <div className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground font-display text-sm font-bold">
+                  +{getXpByType(newType)} XP
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={handleAdd} className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-display font-bold glow-purple">

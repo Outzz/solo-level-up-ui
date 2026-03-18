@@ -171,27 +171,60 @@ const Progress = () => {
             const unlocked = (profile?.level ?? 1) >= (t as any).min_level;
             const isSelected = selectedTitle === t.id;
             return (
-              <motion.div key={t.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}>
-                <button
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.08, type: "spring", stiffness: 200, damping: 20 }}
+              >
+                <motion.button
                   onClick={() => setSelectedTitle(isSelected ? null : t.id)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all flex items-center justify-between ${
-                    unlocked ? "bg-primary/10 border-primary/30 hover:border-primary/50" : "bg-secondary/50 border-border opacity-60"
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-colors flex items-center justify-between ${
+                    unlocked
+                      ? "bg-primary/10 border-primary/30 hover:border-primary/60 hover:bg-primary/20"
+                      : "bg-secondary/50 border-border opacity-60"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">{unlocked ? "🏅" : "🔒"}</span>
+                    <motion.span
+                      className="text-lg"
+                      animate={unlocked ? { rotate: [0, -10, 10, -5, 5, 0], scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.6, delay: i * 0.1 + 0.5 }}
+                    >
+                      {unlocked ? "🏅" : "🔒"}
+                    </motion.span>
                     <span className="font-body font-semibold text-foreground">{t.title}</span>
                   </div>
-                  <span className="text-xs font-display text-muted-foreground">Nv. {(t as any).min_level ?? "?"}</span>
-                </button>
+                  <motion.span
+                    className={`text-xs font-display ${unlocked ? "text-primary" : "text-muted-foreground"}`}
+                    animate={unlocked ? { textShadow: ["0 0 0px transparent", "0 0 8px hsl(var(--primary))", "0 0 0px transparent"] } : {}}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    Nv. {(t as any).min_level ?? "?"}
+                  </motion.span>
+                </motion.button>
                 <AnimatePresence>
                   {isSelected && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden">
-                      <div className="px-4 py-3 ml-4 border-l-2 border-primary/30 mt-1">
+                    <motion.div
+                      initial={{ height: 0, opacity: 0, y: -10 }}
+                      animate={{ height: "auto", opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: -10 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      className="overflow-hidden"
+                    >
+                      <motion.div
+                        className="px-4 py-3 ml-4 border-l-2 border-primary/30 mt-1"
+                        initial={{ x: -10 }}
+                        animate={{ x: 0 }}
+                        transition={{ delay: 0.1 }}
+                      >
                         <p className="text-sm font-body text-muted-foreground">{(t as any).description || "Sem descrição."}</p>
-                        <p className="text-xs font-display text-primary mt-1">{unlocked ? "✓ Desbloqueado" : `Desbloqueie no nível ${(t as any).min_level}`}</p>
-                      </div>
+                        <p className="text-xs font-display text-primary mt-1">
+                          {unlocked ? "✓ Desbloqueado" : `Desbloqueie no nível ${(t as any).min_level}`}
+                        </p>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -211,27 +244,81 @@ const Progress = () => {
           {achievements.map((ach, i) => {
             const isSelected = selectedAchievement === ach.id;
             return (
-              <motion.div key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <button
+              <motion.div
+                key={ach.id}
+                initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ delay: i * 0.07, type: "spring", stiffness: 260, damping: 20 }}
+              >
+                <motion.button
                   onClick={() => setSelectedAchievement(isSelected ? null : ach.id)}
-                  className={`w-full text-center p-3 rounded-lg border transition-all ${
-                    ach.unlocked ? "bg-primary/10 border-primary/30 hover:border-primary/50" : "bg-secondary/50 border-border opacity-50 hover:opacity-70"
+                  whileHover={{
+                    scale: 1.08,
+                    boxShadow: ach.unlocked
+                      ? "0 0 20px hsl(var(--primary) / 0.4)"
+                      : "0 0 10px hsl(var(--muted) / 0.2)",
+                  }}
+                  whileTap={{ scale: 0.92 }}
+                  className={`w-full text-center p-4 rounded-xl border transition-colors relative overflow-hidden ${
+                    ach.unlocked
+                      ? "bg-primary/10 border-primary/30 hover:border-primary/60"
+                      : "bg-secondary/50 border-border opacity-50 hover:opacity-70"
                   }`}
                 >
-                  <span className="text-2xl block mb-1">{ach.icon}</span>
-                  <span className="text-xs font-body font-semibold text-foreground">{ach.name}</span>
-                  {!ach.unlocked && <span className="block text-xs text-muted-foreground mt-1">🔒</span>}
-                </button>
+                  {ach.unlocked && (
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"
+                      animate={{ opacity: [0.3, 0.6, 0.3] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    />
+                  )}
+                  <motion.span
+                    className="text-3xl block mb-2 relative z-10"
+                    animate={ach.unlocked ? {
+                      y: [0, -4, 0],
+                      scale: [1, 1.15, 1],
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 + i * 0.5 }}
+                  >
+                    {ach.icon}
+                  </motion.span>
+                  <span className="text-xs font-body font-semibold text-foreground relative z-10">{ach.name}</span>
+                  {!ach.unlocked && (
+                    <motion.span
+                      className="block text-xs text-muted-foreground mt-1"
+                      animate={{ opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      🔒
+                    </motion.span>
+                  )}
+                </motion.button>
                 <AnimatePresence>
                   {isSelected && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden">
-                      <div className="px-2 py-2 mt-1 text-center">
+                    <motion.div
+                      initial={{ height: 0, opacity: 0, scale: 0.95 }}
+                      animate={{ height: "auto", opacity: 1, scale: 1 }}
+                      exit={{ height: 0, opacity: 0, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                      className="overflow-hidden"
+                    >
+                      <motion.div
+                        className="px-2 py-3 mt-1 text-center"
+                        initial={{ y: -5 }}
+                        animate={{ y: 0 }}
+                      >
                         <p className="text-xs font-body text-muted-foreground">{(ach as any).description || "Sem descrição."}</p>
                         {ach.unlocked && ach.unlocked_at && (
-                          <p className="text-xs font-display text-neon-green mt-1">Desbloqueado em {new Date(ach.unlocked_at).toLocaleDateString("pt-BR")}</p>
+                          <motion.p
+                            className="text-xs font-display text-neon-green mt-1"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.15 }}
+                          >
+                            ✨ Desbloqueado em {new Date(ach.unlocked_at).toLocaleDateString("pt-BR")}
+                          </motion.p>
                         )}
-                      </div>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -1,0 +1,2 @@
+ALTER TABLE public.missions DROP CONSTRAINT missions_type_check;
+ALTER TABLE public.missions ADD CONSTRAINT missions_type_check CHECK (type = ANY (ARRAY['daily'::text, 'weekly'::text, 'monthly'::text]));

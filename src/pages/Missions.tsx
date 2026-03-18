@@ -15,7 +15,6 @@ const Missions = () => {
   const [filter, setFilter] = useState<"all" | "daily" | "weekly" | "monthly">("all");
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newXp, setNewXp] = useState(50);
   const [newType, setNewType] = useState<"daily" | "weekly" | "monthly">("daily");
   const [newIcon, setNewIcon] = useState("⚡");
 

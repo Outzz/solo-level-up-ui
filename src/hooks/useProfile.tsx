@@ -162,15 +162,24 @@ async function checkAndUnlockAchievements(userId: string, streak: number, level:
   return unlocked;
 }
 
+const XP_BY_TYPE: Record<string, number> = {
+  daily: 50,
+  weekly: 150,
+  monthly: 500,
+};
+
+export const getXpByType = (type: string) => XP_BY_TYPE[type] ?? 50;
+
 export const useAddMission = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (mission: { name: string; xp: number; type: string; icon: string }) => {
+    mutationFn: async (mission: { name: string; type: string; icon: string }) => {
+      const xp = getXpByType(mission.type);
       const { error } = await supabase
         .from("missions")
-        .insert({ ...mission, user_id: user!.id });
+        .insert({ ...mission, xp, user_id: user!.id });
       if (error) throw error;
     },
     onSuccess: () => {

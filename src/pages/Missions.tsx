@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import MissionItem from "@/components/MissionItem";
 import EmojiPicker from "@/components/EmojiPicker";
-import { useMissions, useCompleteMission, useAddMission, useEditMission, useDeleteMission } from "@/hooks/useProfile";
+import { useMissions, useCompleteMission, useAddMission, useEditMission, useDeleteMission, getXpByType } from "@/hooks/useProfile";
 
 const Missions = () => {
   const { data: missions = [] } = useMissions();

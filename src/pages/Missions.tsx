@@ -27,7 +27,7 @@ const Missions = () => {
 
   const handleAdd = () => {
     if (!newName.trim()) return;
-    addMission.mutate({ name: newName, xp: newXp, type: newType, icon: newIcon });
+    addMission.mutate({ name: newName, type: newType, icon: newIcon });
     setNewName("");
     setNewIcon("⚡");
     setShowAdd(false);

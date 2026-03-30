@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Swords, BarChart3, User, Menu, X, LogOut } from "lucide-react";
+import { LayoutDashboard, Swords, BarChart3, User, Menu, X, LogOut, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/missoes", label: "Missões", icon: Swords },
   { path: "/progresso", label: "Progresso", icon: BarChart3 },
+  { path: "/ranking", label: "Ranking", icon: Trophy },
   { path: "/perfil", label: "Perfil", icon: User },
 ];
 

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Missions from "./pages/Missions";
 import Progress from "./pages/Progress";
 import Profile from "./pages/Profile";
+import Ranks from "./pages/Ranks";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/missoes" element={<Missions />} />
                     <Route path="/progresso" element={<Progress />} />
+                    <Route path="/ranking" element={<Ranks />} />
                     <Route path="/perfil" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

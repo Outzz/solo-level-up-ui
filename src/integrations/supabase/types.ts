@@ -77,6 +77,36 @@ export type Database = {
         }
         Relationships: []
       }
+      leagues: {
+        Row: {
+          created_at: string
+          id: string
+          league_name: string
+          position: number | null
+          user_id: string
+          week_start: string
+          xp_earned: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_name?: string
+          position?: number | null
+          user_id: string
+          week_start?: string
+          xp_earned?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_name?: string
+          position?: number | null
+          user_id?: string
+          week_start?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       missions: {
         Row: {
           completed: boolean
@@ -187,7 +217,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_league_xp: {
+        Args: { p_user_id: string; p_xp: number }
+        Returns: undefined
+      }
+      ensure_league_entry: { Args: { p_user_id: string }; Returns: undefined }
       generate_hunter_name: { Args: never; Returns: string }
+      get_weekly_leaderboard: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          hunter_name: string
+          league_name: string
+          level: number
+          user_id: string
+          xp_earned: number
+        }[]
+      }
+      process_league_promotions: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

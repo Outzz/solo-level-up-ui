@@ -105,6 +105,9 @@ export const useCompleteMission = () => {
             .update({ xp: newXp, level: newLevel, xp_to_next: newXpToNext })
             .eq("user_id", user!.id);
 
+          // Add XP to weekly league
+          await supabase.rpc("add_league_xp", { p_user_id: user!.id, p_xp: mission.xp });
+
           // Check and unlock achievements
           const unlockedAchievements = await checkAndUnlockAchievements(user!.id, profile.streak, newLevel);
 

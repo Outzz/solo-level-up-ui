@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Swords, Mail, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";

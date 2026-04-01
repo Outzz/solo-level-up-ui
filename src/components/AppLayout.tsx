@@ -75,7 +75,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 Sair
               </button>
               <div className="text-xs text-muted-foreground font-body text-center">
-                v1.0 — Arise, Hunter
+                v1.0 — Level Up
               </div>
             </div>
           </motion.aside>

@@ -22,7 +22,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile header */}
       <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="font-display text-lg font-bold text-glow-purple text-primary">SOLO LIFE</h1>
+          <img src="/logo.png" alt="Level Up" className="w-8 h-8" />
+          <h1 className="font-display text-lg font-bold text-glow-purple text-primary">LEVEL UP</h1>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-foreground p-2">
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}

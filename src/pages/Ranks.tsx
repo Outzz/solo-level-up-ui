@@ -1,17 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, ChevronRight } from "lucide-react";
+import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift } from "lucide-react";
 import GameCard from "@/components/GameCard";
-import { useLeaderboard, useUserLeague, useEnsureLeague, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
+import { useLeaderboard, useUserLeague, useEnsureLeague, useLeagueRewards, useMarkRewardSeen, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 const Ranks = () => {
   useEnsureLeague();
   const { user } = useAuth();
   const { data: leaderboard = [], isLoading } = useLeaderboard();
   const { data: userLeague } = useUserLeague();
+  const { data: rewards = [] } = useLeagueRewards();
+  const markSeen = useMarkRewardSeen();
+  const { toast } = useToast();
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+
+  // Show promotion reward toasts
+  useEffect(() => {
+    if (!rewards || rewards.length === 0) return;
+    rewards.forEach((reward, i) => {
+      const toConfig = LEAGUE_CONFIG[reward.to_league];
+      setTimeout(() => {
+        toast({
+          title: `${toConfig?.icon ?? "🏆"} Promoção de Liga!`,
+          description: `Você subiu para ${toConfig?.label ?? reward.to_league}! +${reward.bonus_xp} XP bônus${reward.title_earned ? ` • Título: ${reward.title_earned}` : ""}`,
+        });
+        markSeen.mutate(reward.id);
+      }, i * 2000);
+    });
+  }, [rewards]);
 
   const currentLeague = userLeague?.league_name ?? "bronze";
   const leagueConfig = LEAGUE_CONFIG[currentLeague] ?? LEAGUE_CONFIG.bronze;

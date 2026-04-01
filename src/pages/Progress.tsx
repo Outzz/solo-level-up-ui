@@ -2,8 +2,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, CheckCircle, Calendar, TrendingUp, Star, Shield, Info } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
 import { useProfile, useMissions, useAchievements, useTitles } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Progress = () => {
   const { data: profile } = useProfile();

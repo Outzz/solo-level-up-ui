@@ -2,10 +2,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, CheckCircle, Calendar, TrendingUp, Star, Shield, Info } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { useQuery } from "@tanstack/react-query";
 import GameCard from "@/components/GameCard";
 import { useProfile, useMissions, useAchievements, useTitles } from "@/hooks/useProfile";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Progress = () => {
+  const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: missions = [] } = useMissions();
   const { data: achievements = [] } = useAchievements();
@@ -18,30 +22,88 @@ const Progress = () => {
   const completionRate = totalMissions > 0 ? Math.round((completedMissions / totalMissions) * 100) : 0;
   const totalXpEarned = missions.filter(m => m.completed).reduce((sum, m) => sum + m.xp, 0);
 
-  // Mock weekly XP data based on real data
-  const weeklyXpData = [
-    { day: "Seg", xp: Math.round(totalXpEarned * 0.12) },
-    { day: "Ter", xp: Math.round(totalXpEarned * 0.18) },
-    { day: "Qua", xp: Math.round(totalXpEarned * 0.08) },
-    { day: "Qui", xp: Math.round(totalXpEarned * 0.15) },
-    { day: "Sex", xp: Math.round(totalXpEarned * 0.22) },
-    { day: "Sáb", xp: Math.round(totalXpEarned * 0.14) },
-    { day: "Dom", xp: Math.round(totalXpEarned * 0.11) },
-  ];
-
-  const monthlyData = [
-    { week: "Sem 1", rate: Math.min(100, completionRate + 5) },
-    { week: "Sem 2", rate: Math.min(100, completionRate - 10) },
-    { week: "Sem 3", rate: Math.min(100, completionRate + 2) },
-    { week: "Sem 4", rate: completionRate },
-  ];
-
-  // Habit history from missions
-  const habitHistory = missions.slice(0, 5).map(m => {
-    const rate = m.completed ? Math.floor(70 + Math.random() * 30) : Math.floor(30 + Math.random() * 40);
-    const streak = m.completed ? Math.floor(3 + Math.random() * 12) : 0;
-    return { name: m.name, icon: m.icon, rate, streak };
+  // Real weekly XP data from daily_progress
+  const { data: dailyProgress = [] } = useQuery({
+    queryKey: ["daily_progress", user?.id],
+    queryFn: async () => {
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+      const { data, error } = await supabase
+        .from("daily_progress")
+        .select("*")
+        .eq("user_id", user!.id)
+        .gte("date", startOfWeek.toISOString().split("T")[0])
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
   });
+
+  const dayNames = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const weeklyXpData = (() => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const dateStr = d.toISOString().split("T")[0];
+      const entry = dailyProgress.find((p: any) => p.date === dateStr);
+      days.push({ day: dayNames[(d.getDay())], xp: entry ? entry.xp_earned : 0 });
+    }
+    return days;
+  })();
+
+  // Real monthly data from daily_progress (last 4 weeks)
+  const { data: monthlyProgress = [] } = useQuery({
+    queryKey: ["monthly_progress", user?.id],
+    queryFn: async () => {
+      const today = new Date();
+      const fourWeeksAgo = new Date(today);
+      fourWeeksAgo.setDate(today.getDate() - 28);
+      const { data, error } = await supabase
+        .from("daily_progress")
+        .select("*")
+        .eq("user_id", user!.id)
+        .gte("date", fourWeeksAgo.toISOString().split("T")[0])
+        .order("date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const monthlyData = (() => {
+    const weeks: { week: string; rate: number }[] = [];
+    for (let w = 0; w < 4; w++) {
+      const weekEntries = monthlyProgress.filter((_: any, idx: number) => {
+        const entryDate = new Date((monthlyProgress[idx] as any).date);
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - 28 + w * 7);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+        return entryDate >= weekStart && entryDate < weekEnd;
+      });
+      const totalCompleted = weekEntries.reduce((s: number, e: any) => s + e.missions_completed, 0);
+      const totalMissionsWeek = weekEntries.reduce((s: number, e: any) => s + e.missions_total, 0);
+      const rate = totalMissionsWeek > 0 ? Math.round((totalCompleted / totalMissionsWeek) * 100) : 0;
+      weeks.push({ week: `Sem ${w + 1}`, rate });
+    }
+    return weeks;
+  })();
+
+  // Real habit history: completion count per mission
+  const habitHistory = (() => {
+    if (missions.length === 0) return [];
+    return missions.slice(0, 5).map(m => {
+      const completed = m.completed ? 1 : 0;
+      return { name: m.name, icon: m.icon, rate: completed * 100, streak: 0 };
+    });
+  })();
 
   const statCards = [
     { label: "XP ESTA SEMANA", value: totalXpEarned, icon: TrendingUp, color: "text-neon-green" },

@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const Progress = () => {
+  const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: missions = [] } = useMissions();
   const { data: achievements = [] } = useAchievements();

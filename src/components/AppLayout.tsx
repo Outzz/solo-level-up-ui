@@ -22,7 +22,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Mobile header */}
       <header className="fixed top-0 left-0 right-0 z-50 lg:hidden bg-card/90 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="font-display text-lg font-bold text-glow-purple text-primary">SOLO LIFE</h1>
+          <img src="/logo.png" alt="Level Up" className="w-8 h-8" />
+          <h1 className="font-display text-lg font-bold text-glow-purple text-primary">LEVEL UP</h1>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-foreground p-2">
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -38,7 +39,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="p-6 border-b border-sidebar-border hidden lg:block">
               <div className="flex items-center gap-3">
-                <h1 className="font-display text-xl font-bold text-glow-purple text-primary tracking-wider">SOLO LIFE</h1>
+                <img src="/logo.png" alt="Level Up" className="w-10 h-10" />
+                <h1 className="font-display text-xl font-bold text-glow-purple text-primary tracking-wider">LEVEL UP</h1>
               </div>
               <p className="text-xs text-muted-foreground font-body mt-1">Sistema de Evolução Pessoal</p>
             </div>
@@ -73,7 +75,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 Sair
               </button>
               <div className="text-xs text-muted-foreground font-body text-center">
-                v1.0 — Arise, Hunter
+                v1.0 — Level Up
               </div>
             </div>
           </motion.aside>

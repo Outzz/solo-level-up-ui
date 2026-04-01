@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Swords, Mail, Lock } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
@@ -68,12 +69,12 @@ const Auth = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", bounce: 0.5 }}
-            className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center glow-purple"
+            className="w-24 h-24 mx-auto mb-4"
           >
-            <Swords size={36} className="text-primary-foreground" />
+            <img src={logoImg} alt="Level Up" width={96} height={96} className="w-full h-full object-contain drop-shadow-[0_0_15px_hsl(260,80%,55%,0.5)]" />
           </motion.div>
           <h1 className="text-4xl font-display font-bold text-glow-purple text-primary tracking-wider">
-            SOLO LIFE
+            LEVEL UP
           </h1>
           <p className="text-muted-foreground font-body mt-2">Sistema de Evolução Pessoal</p>
         </div>

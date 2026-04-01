@@ -1,17 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, ChevronRight } from "lucide-react";
+import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift } from "lucide-react";
 import GameCard from "@/components/GameCard";
-import { useLeaderboard, useUserLeague, useEnsureLeague, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
+import { useLeaderboard, useUserLeague, useEnsureLeague, useLeagueRewards, useMarkRewardSeen, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 const Ranks = () => {
   useEnsureLeague();
   const { user } = useAuth();
   const { data: leaderboard = [], isLoading } = useLeaderboard();
   const { data: userLeague } = useUserLeague();
+  const { data: rewards = [] } = useLeagueRewards();
+  const markSeen = useMarkRewardSeen();
+  const { toast } = useToast();
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+
+  // Show promotion reward toasts
+  useEffect(() => {
+    if (!rewards || rewards.length === 0) return;
+    rewards.forEach((reward, i) => {
+      const toConfig = LEAGUE_CONFIG[reward.to_league];
+      setTimeout(() => {
+        toast({
+          title: `${toConfig?.icon ?? "🏆"} Promoção de Liga!`,
+          description: `Você subiu para ${toConfig?.label ?? reward.to_league}! +${reward.bonus_xp} XP bônus${reward.title_earned ? ` • Título: ${reward.title_earned}` : ""}`,
+        });
+        markSeen.mutate(reward.id);
+      }, i * 2000);
+    });
+  }, [rewards]);
 
   const currentLeague = userLeague?.league_name ?? "bronze";
   const leagueConfig = LEAGUE_CONFIG[currentLeague] ?? LEAGUE_CONFIG.bronze;
@@ -93,6 +112,26 @@ const Ranks = () => {
         </div>
       </motion.div>
 
+      {/* Promotion Rewards Info */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }}>
+        <h2 className="font-display text-lg font-bold mb-3 text-foreground flex items-center gap-2">
+          <Gift size={20} className="text-neon-gold" /> RECOMPENSAS POR PROMOÇÃO
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {LEAGUE_ORDER.slice(1).map((league) => {
+            const config = LEAGUE_CONFIG[league];
+            return (
+              <GameCard key={league} className="text-center py-3">
+                <span className="text-xl block">{config.icon}</span>
+                <p className={`text-xs font-display font-bold mt-1 ${config.color}`}>{config.label}</p>
+                <p className="text-sm font-display font-bold text-neon-green mt-1">+{config.bonusXp} XP</p>
+                <p className="text-[10px] text-muted-foreground font-body">+ Título exclusivo</p>
+              </GameCard>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Promotion/Demotion Info */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <GameCard className="flex items-center gap-3">
@@ -101,7 +140,7 @@ const Ranks = () => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground font-body">Promoção</p>
-            <p className="text-sm font-display font-bold text-neon-green">Top 3 sobem</p>
+            <p className="text-sm font-display font-bold text-neon-green">Top 3 sobem + recompensas</p>
           </div>
         </GameCard>
         <GameCard className="flex items-center gap-3">

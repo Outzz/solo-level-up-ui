@@ -77,6 +77,39 @@ export type Database = {
         }
         Relationships: []
       }
+      league_rewards: {
+        Row: {
+          bonus_xp: number
+          created_at: string
+          from_league: string
+          id: string
+          seen: boolean
+          title_earned: string | null
+          to_league: string
+          user_id: string
+        }
+        Insert: {
+          bonus_xp?: number
+          created_at?: string
+          from_league: string
+          id?: string
+          seen?: boolean
+          title_earned?: string | null
+          to_league: string
+          user_id: string
+        }
+        Update: {
+          bonus_xp?: number
+          created_at?: string
+          from_league?: string
+          id?: string
+          seen?: boolean
+          title_earned?: string | null
+          to_league?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leagues: {
         Row: {
           created_at: string

@@ -112,6 +112,26 @@ const Ranks = () => {
         </div>
       </motion.div>
 
+      {/* Promotion Rewards Info */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }}>
+        <h2 className="font-display text-lg font-bold mb-3 text-foreground flex items-center gap-2">
+          <Gift size={20} className="text-neon-gold" /> RECOMPENSAS POR PROMOÇÃO
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {LEAGUE_ORDER.slice(1).map((league) => {
+            const config = LEAGUE_CONFIG[league];
+            return (
+              <GameCard key={league} className="text-center py-3">
+                <span className="text-xl block">{config.icon}</span>
+                <p className={`text-xs font-display font-bold mt-1 ${config.color}`}>{config.label}</p>
+                <p className="text-sm font-display font-bold text-neon-green mt-1">+{config.bonusXp} XP</p>
+                <p className="text-[10px] text-muted-foreground font-body">+ Título exclusivo</p>
+              </GameCard>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Promotion/Demotion Info */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <GameCard className="flex items-center gap-3">
@@ -120,7 +140,7 @@ const Ranks = () => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground font-body">Promoção</p>
-            <p className="text-sm font-display font-bold text-neon-green">Top 3 sobem</p>
+            <p className="text-sm font-display font-bold text-neon-green">Top 3 sobem + recompensas</p>
           </div>
         </GameCard>
         <GameCard className="flex items-center gap-3">

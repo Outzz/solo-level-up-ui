@@ -11,14 +11,40 @@ import Progress from "./pages/Progress";
 import Profile from "./pages/Profile";
 import Ranks from "./pages/Ranks";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
+import { useProfile } from "@/hooks/useProfile";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-primary font-display text-xl animate-pulse">Carregando...</span></div>;
+  const { data: profile, isLoading: profileLoading } = useProfile();
+
+  if (loading || profileLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><span className="text-primary font-display text-xl animate-pulse">Carregando...</span></div>;
   if (!user) return <Navigate to="/auth" replace />;
+
+  // If user still has auto-generated name (contains #), redirect to onboarding
+  // Auto-generated names follow pattern "Word Word #1234"
+  if (profile && /^[A-Z][a-z]+ [A-Z][a-z]+ #\d{4}$/.test(profile.hunter_name)) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+
+  if (loading || profileLoading) return null;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  // If user already has a custom name, go to dashboard
+  if (profile && !/^[A-Z][a-z]+ [A-Z][a-z]+ #\d{4}$/.test(profile.hunter_name)) {
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -38,6 +64,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
+            <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
             <Route path="*" element={
               <ProtectedRoute>
                 <AppLayout>

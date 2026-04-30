@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift } from "lucide-react";
+import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift, Lock } from "lucide-react";
 import GameCard from "@/components/GameCard";
+import LeagueChangeAnimation from "@/components/LeagueChangeAnimation";
 import { useLeaderboard, useUserLeague, useEnsureLeague, useLeagueRewards, useMarkRewardSeen, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
+
+interface PendingChange {
+  id: string;
+  type: "promotion" | "demotion";
+  fromLeague: string;
+  toLeague: string;
+  bonusXp: number;
+  titleEarned: string | null;
+}
 
 const Ranks = () => {
   useEnsureLeague();
@@ -14,23 +23,42 @@ const Ranks = () => {
   const { data: userLeague } = useUserLeague();
   const { data: rewards = [] } = useLeagueRewards();
   const markSeen = useMarkRewardSeen();
-  const { toast } = useToast();
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+  const [queue, setQueue] = useState<PendingChange[]>([]);
+  const [activeChange, setActiveChange] = useState<PendingChange | null>(null);
 
-  // Show promotion reward toasts
+  // Convert unseen rewards into a queue of fullscreen animations (promotions + demotions)
   useEffect(() => {
     if (!rewards || rewards.length === 0) return;
-    rewards.forEach((reward, i) => {
-      const toConfig = LEAGUE_CONFIG[reward.to_league];
-      setTimeout(() => {
-        toast({
-          title: `${toConfig?.icon ?? "🏆"} Promoção de Liga!`,
-          description: `Você subiu para ${toConfig?.label ?? reward.to_league}! +${reward.bonus_xp} XP bônus${reward.title_earned ? ` • Título: ${reward.title_earned}` : ""}`,
-        });
-        markSeen.mutate(reward.id);
-      }, i * 2000);
+    const mapped: PendingChange[] = rewards.map((r) => {
+      const fromIdx = LEAGUE_ORDER.indexOf(r.from_league);
+      const toIdx = LEAGUE_ORDER.indexOf(r.to_league);
+      return {
+        id: r.id,
+        type: toIdx > fromIdx ? "promotion" : "demotion",
+        fromLeague: r.from_league,
+        toLeague: r.to_league,
+        bonusXp: r.bonus_xp,
+        titleEarned: r.title_earned,
+      };
     });
+    setQueue(mapped);
   }, [rewards]);
+
+  // Show next animation in queue
+  useEffect(() => {
+    if (!activeChange && queue.length > 0) {
+      setActiveChange(queue[0]);
+    }
+  }, [queue, activeChange]);
+
+  const handleCloseAnimation = () => {
+    if (activeChange) {
+      markSeen.mutate(activeChange.id);
+      setQueue((q) => q.filter((c) => c.id !== activeChange.id));
+      setActiveChange(null);
+    }
+  };
 
   const currentLeague = userLeague?.league_name ?? "bronze";
   const leagueConfig = LEAGUE_CONFIG[currentLeague] ?? LEAGUE_CONFIG.bronze;
@@ -87,50 +115,76 @@ const Ranks = () => {
         <h2 className="font-display text-lg font-bold mb-3 text-foreground flex items-center gap-2">
           <Shield size={20} /> LIGAS
         </h2>
+        <p className="text-xs text-muted-foreground font-body mb-3">
+          Suba de liga para desbloquear as próximas. Cada nova divisão é revelada conforme você evolui.
+        </p>
         <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
           {LEAGUE_ORDER.map((league, idx) => {
             const config = LEAGUE_CONFIG[league];
             const isCurrent = league === currentLeague;
-            const isLocked = idx > currentLeagueIdx;
+            const isUnlocked = idx <= currentLeagueIdx;
+            const isNext = idx === currentLeagueIdx + 1;
             return (
               <motion.button
                 key={league}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedLeague(selectedLeague === league ? null : league)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all border
-                  ${isCurrent ? "border-primary bg-primary/10 ring-2 ring-primary/30" : "border-border bg-card hover:border-primary/30"}
-                  ${isLocked ? "opacity-40" : ""}`}
+                whileHover={isUnlocked ? { scale: 1.1 } : {}}
+                whileTap={isUnlocked ? { scale: 0.95 } : {}}
+                onClick={() => isUnlocked && setSelectedLeague(selectedLeague === league ? null : league)}
+                disabled={!isUnlocked}
+                className={`relative flex flex-col items-center gap-1 p-2 rounded-lg transition-all border overflow-hidden
+                  ${isCurrent ? "border-primary bg-primary/10 ring-2 ring-primary/30" : ""}
+                  ${isUnlocked && !isCurrent ? "border-border bg-card hover:border-primary/30" : ""}
+                  ${!isUnlocked ? "border-border/40 bg-black cursor-not-allowed" : ""}
+                  ${isNext ? "border-primary/30 bg-black ring-1 ring-primary/20" : ""}
+                `}
               >
-                <span className="text-2xl">{config.icon}</span>
-                <span className={`text-[10px] font-display font-bold ${isCurrent ? config.color : "text-muted-foreground"}`}>
-                  {config.label}
-                </span>
+                {isUnlocked ? (
+                  <>
+                    <span className="text-2xl">{config.icon}</span>
+                    <span className={`text-[10px] font-display font-bold ${isCurrent ? config.color : "text-muted-foreground"}`}>
+                      {config.label}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl grayscale brightness-0 opacity-60">{config.icon}</span>
+                    <span className="text-[10px] font-display font-bold text-muted-foreground/50 flex items-center gap-1">
+                      <Lock size={8} />
+                      {isNext ? "Próxima" : "???"}
+                    </span>
+                  </>
+                )}
               </motion.button>
             );
           })}
         </div>
       </motion.div>
 
-      {/* Promotion Rewards Info */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }}>
-        <h2 className="font-display text-lg font-bold mb-3 text-foreground flex items-center gap-2">
-          <Gift size={20} className="text-neon-gold" /> RECOMPENSAS POR PROMOÇÃO
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {LEAGUE_ORDER.slice(1).map((league) => {
-            const config = LEAGUE_CONFIG[league];
+      {/* Next League Reward (only show next tier, keep mystery for the rest) */}
+      {currentLeagueIdx < LEAGUE_ORDER.length - 1 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }}>
+          <h2 className="font-display text-lg font-bold mb-3 text-foreground flex items-center gap-2">
+            <Gift size={20} className="text-neon-gold" /> PRÓXIMA RECOMPENSA
+          </h2>
+          {(() => {
+            const nextLeague = LEAGUE_ORDER[currentLeagueIdx + 1];
+            const nextConfig = LEAGUE_CONFIG[nextLeague];
             return (
-              <GameCard key={league} className="text-center py-3">
-                <span className="text-xl block">{config.icon}</span>
-                <p className={`text-xs font-display font-bold mt-1 ${config.color}`}>{config.label}</p>
-                <p className="text-sm font-display font-bold text-neon-green mt-1">+{config.bonusXp} XP</p>
-                <p className="text-[10px] text-muted-foreground font-body">+ Título exclusivo</p>
+              <GameCard className="flex items-center gap-4">
+                <div className="text-4xl">{nextConfig.icon}</div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground font-body uppercase tracking-wider">Promova-se para</p>
+                  <p className={`font-display font-bold ${nextConfig.color}`}>{nextConfig.label}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-display font-bold text-neon-green">+{nextConfig.bonusXp} XP</p>
+                  <p className="text-[10px] text-muted-foreground font-body">+ Título exclusivo</p>
+                </div>
               </GameCard>
             );
-          })}
-        </div>
-      </motion.div>
+          })()}
+        </motion.div>
+      )}
 
       {/* Promotion/Demotion Info */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -270,6 +324,17 @@ const Ranks = () => {
           </p>
         </GameCard>
       </motion.div>
+
+      {/* Fullscreen league change animation */}
+      <LeagueChangeAnimation
+        open={!!activeChange}
+        type={activeChange?.type ?? "promotion"}
+        fromLeague={activeChange?.fromLeague ?? "bronze"}
+        toLeague={activeChange?.toLeague ?? "bronze"}
+        bonusXp={activeChange?.bonusXp}
+        titleEarned={activeChange?.titleEarned}
+        onClose={handleCloseAnimation}
+      />
     </div>
   );
 };

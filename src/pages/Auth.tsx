@@ -75,8 +75,14 @@ const Auth = () => {
 
         <div className="bg-card border-glow rounded-xl p-6 space-y-5">
           <h2 className="font-display text-center text-lg text-foreground">
-            {isLogin ? "ENTRAR NO SISTEMA" : "CRIAR CONTA"}
+            {mode === "login" ? "ENTRAR NO SISTEMA" : mode === "signup" ? "CRIAR CONTA" : "RECUPERAR SENHA"}
           </h2>
+
+          {mode === "forgot" && (
+            <p className="text-center text-sm text-muted-foreground font-body">
+              Digite seu email e enviaremos um link para redefinir sua senha.
+            </p>
+          )}
 
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div className="relative">
@@ -90,36 +96,66 @@ const Auth = () => {
                 className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="password"
-                placeholder="Senha"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="password"
+                  placeholder="Senha"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full bg-input border border-border rounded-lg pl-10 pr-4 py-3 text-foreground font-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            )}
+            {mode === "login" && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="text-xs text-primary hover:underline font-body"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
+            )}
             <motion.button
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-display font-bold glow-purple disabled:opacity-50"
             >
-              {loading ? "Carregando..." : isLogin ? "ENTRAR" : "CRIAR CONTA"}
+              {loading
+                ? "Carregando..."
+                : mode === "login"
+                ? "ENTRAR"
+                : mode === "signup"
+                ? "CRIAR CONTA"
+                : "ENVIAR LINK"}
             </motion.button>
           </form>
 
           <p className="text-center text-sm text-muted-foreground font-body">
-            {isLogin ? "Não tem conta?" : "Já tem conta?"}{" "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline font-semibold"
-            >
-              {isLogin ? "Criar conta" : "Entrar"}
-            </button>
+            {mode === "forgot" ? (
+              <button
+                onClick={() => setMode("login")}
+                className="text-primary hover:underline font-semibold"
+              >
+                Voltar para o login
+              </button>
+            ) : (
+              <>
+                {mode === "login" ? "Não tem conta?" : "Já tem conta?"}{" "}
+                <button
+                  onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                  className="text-primary hover:underline font-semibold"
+                >
+                  {mode === "login" ? "Criar conta" : "Entrar"}
+                </button>
+              </>
+            )}
           </p>
         </div>
 

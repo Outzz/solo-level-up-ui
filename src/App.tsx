@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Ranks from "./pages/Ranks";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -64,6 +65,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthRoute><Auth /></AuthRoute>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
             <Route path="*" element={
               <ProtectedRoute>

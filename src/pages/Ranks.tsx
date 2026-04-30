@@ -324,6 +324,17 @@ const Ranks = () => {
           </p>
         </GameCard>
       </motion.div>
+
+      {/* Fullscreen league change animation */}
+      <LeagueChangeAnimation
+        open={!!activeChange}
+        type={activeChange?.type ?? "promotion"}
+        fromLeague={activeChange?.fromLeague ?? "bronze"}
+        toLeague={activeChange?.toLeague ?? "bronze"}
+        bonusXp={activeChange?.bonusXp}
+        titleEarned={activeChange?.titleEarned}
+        onClose={handleCloseAnimation}
+      />
     </div>
   );
 };

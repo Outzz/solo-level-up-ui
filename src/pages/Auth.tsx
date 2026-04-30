@@ -5,8 +5,10 @@ import logoImg from "@/assets/logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+type Mode = "login" | "signup" | "forgot";
+
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,10 +18,10 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
+      if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-      } else {
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -30,6 +32,16 @@ const Auth = () => {
           title: "Conta criada!",
           description: "Verifique seu email para confirmar o cadastro.",
         });
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          title: "Email enviado!",
+          description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        });
+        setMode("login");
       }
     } catch (error: any) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
@@ -37,7 +49,6 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
 
 
   return (

@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift } from "lucide-react";
+import { Trophy, Crown, TrendingUp, TrendingDown, Minus, Shield, Gift, Lock } from "lucide-react";
 import GameCard from "@/components/GameCard";
+import LeagueChangeAnimation from "@/components/LeagueChangeAnimation";
 import { useLeaderboard, useUserLeague, useEnsureLeague, useLeagueRewards, useMarkRewardSeen, LEAGUE_CONFIG, LEAGUE_ORDER } from "@/hooks/useLeague";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
+
+interface PendingChange {
+  id: string;
+  type: "promotion" | "demotion";
+  fromLeague: string;
+  toLeague: string;
+  bonusXp: number;
+  titleEarned: string | null;
+}
 
 const Ranks = () => {
   useEnsureLeague();
@@ -14,23 +23,42 @@ const Ranks = () => {
   const { data: userLeague } = useUserLeague();
   const { data: rewards = [] } = useLeagueRewards();
   const markSeen = useMarkRewardSeen();
-  const { toast } = useToast();
   const [selectedLeague, setSelectedLeague] = useState<string | null>(null);
+  const [queue, setQueue] = useState<PendingChange[]>([]);
+  const [activeChange, setActiveChange] = useState<PendingChange | null>(null);
 
-  // Show promotion reward toasts
+  // Convert unseen rewards into a queue of fullscreen animations (promotions + demotions)
   useEffect(() => {
     if (!rewards || rewards.length === 0) return;
-    rewards.forEach((reward, i) => {
-      const toConfig = LEAGUE_CONFIG[reward.to_league];
-      setTimeout(() => {
-        toast({
-          title: `${toConfig?.icon ?? "🏆"} Promoção de Liga!`,
-          description: `Você subiu para ${toConfig?.label ?? reward.to_league}! +${reward.bonus_xp} XP bônus${reward.title_earned ? ` • Título: ${reward.title_earned}` : ""}`,
-        });
-        markSeen.mutate(reward.id);
-      }, i * 2000);
+    const mapped: PendingChange[] = rewards.map((r) => {
+      const fromIdx = LEAGUE_ORDER.indexOf(r.from_league);
+      const toIdx = LEAGUE_ORDER.indexOf(r.to_league);
+      return {
+        id: r.id,
+        type: toIdx > fromIdx ? "promotion" : "demotion",
+        fromLeague: r.from_league,
+        toLeague: r.to_league,
+        bonusXp: r.bonus_xp,
+        titleEarned: r.title_earned,
+      };
     });
+    setQueue(mapped);
   }, [rewards]);
+
+  // Show next animation in queue
+  useEffect(() => {
+    if (!activeChange && queue.length > 0) {
+      setActiveChange(queue[0]);
+    }
+  }, [queue, activeChange]);
+
+  const handleCloseAnimation = () => {
+    if (activeChange) {
+      markSeen.mutate(activeChange.id);
+      setQueue((q) => q.filter((c) => c.id !== activeChange.id));
+      setActiveChange(null);
+    }
+  };
 
   const currentLeague = userLeague?.league_name ?? "bronze";
   const leagueConfig = LEAGUE_CONFIG[currentLeague] ?? LEAGUE_CONFIG.bronze;

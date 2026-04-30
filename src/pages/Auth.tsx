@@ -38,23 +38,7 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error?.message || "Falha no login com Google.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-background bg-grid-pattern flex items-center justify-center p-4">
